@@ -22,12 +22,19 @@ type KeyValue =
             match this with
             | Int i -> string i
             | Float f -> string f
-            | String s -> "\"" + s + "\""
+            | String s -> "\"" + s.Replace("\"", "\\\"") + "\""
             | Bool b -> string b
 
 type Point(measurement: string, timestamp: DateTimeOffset, tags: Map<string, string> option, fields: Map<string, KeyValue>) =
-    let escape value = "\"" + value + "\""
-    let timestamp = timestamp.ToUnixTimeSeconds()
+    let escape (value: string) = value.Replace(" ", "\ ").Replace(",", "\,")
+
+    let timestampPrecision = function
+        | NanoSeconds -> timestamp.ToUnixTimeMilliseconds() * 100L
+        | MicroSeconds -> timestamp.ToUnixTimeMilliseconds() * 10L
+        | MilliSeconds -> timestamp.ToUnixTimeMilliseconds()
+        | Seconds -> timestamp.ToUnixTimeSeconds()
+        | Minutes -> timestamp.ToUnixTimeSeconds() / 60L
+        | Hours -> timestamp.ToUnixTimeSeconds() / 120L
 
     new (measurement: string, fields: Map<string, KeyValue>) =
         Point(measurement, DateTimeOffset.UtcNow, None, fields)
@@ -38,10 +45,16 @@ type Point(measurement: string, timestamp: DateTimeOffset, tags: Map<string, str
     new (measurement: string, tags: Map<string, string>, fields: Map<string, KeyValue>) =
         Point(measurement, DateTimeOffset.UtcNow, Some tags, fields)
 
-    member this.Serialize =
+    member this.With(additionalTags: Map<string, string>) =
+        let tagsSeq = match tags with
+                        | Some t -> Map.toSeq t
+                        | None -> Seq.empty
+
+        new Point(measurement, timestamp, Some (Seq.concat [ tagsSeq; Map.toSeq additionalTags ] |> Map.ofSeq), fields)
+
+    member this.Serialize (precision: Precision option) =
         let tags = match tags with
-                    | Some t -> t 
-                                // |> Map.filter (fun _ v -> not(String.IsNullOrWhiteSpace(v)))
+                    | Some t -> t
                                 |> Map.toList 
                                 |> List.map (fun (key, value) -> escape key + "=" + escape value)
                     | None -> List.empty
@@ -50,21 +63,25 @@ type Point(measurement: string, timestamp: DateTimeOffset, tags: Map<string, str
                         |> Map.toList 
                         |> List.map (fun (key, value) -> escape key + "=" + string value)
 
-        String.Join(",", measurement :: tags) + " " + String.Join(" ", fields) + " " + string timestamp
+        String.Join(",", escape measurement :: tags) + " " + 
+            String.Join(",", fields) + " " +
+             string (defaultArg precision Precision.NanoSeconds |> timestampPrecision)
 
-type Series =
+type Serie =
     { Name: string
       Tags: Map<string, string>
       Columns: string[]
       Values: obj[][] }
 
-type internal QueryResult = 
+type Series = { Series: Serie[] }
+
+type QueryResult = 
     { Results: Series[]
       Error: string }
 
 type QueryResponse =
     | Error of string
-    | Result of Series[]
+    | Result of Serie[][]
 
 type InfluxDbClient(host: string, port: uint16) =
     let url path = String.Format("http://{0}:{1}/", host, port) + path
@@ -82,10 +99,10 @@ type InfluxDbClient(host: string, port: uint16) =
     new (host: string) = InfluxDbClient(host, 8086us)
     
     member this.Write(database: string, point: Point, precision: Precision option) = 
-        this.Write(database, [| point |], precision)
+        this.Write(database, [ point ], precision)
 
-    member this.Write(database: string, points: Point[], precision: Precision option) =
-        let body = Array.map (fun (p: Point) -> p.Serialize) points
+    member this.Write(database: string, points: seq<Point>, precision: Precision option) =
+        let body = Seq.map (fun (p: Point) -> p.Serialize precision) points
         let request = createRequest Post (url "write")
                         |> withQueryStringItem { name = "db"; value = database }
                         |> withQueryStringItem { name = "precision"; value = precisionToString precision }
@@ -96,14 +113,22 @@ type InfluxDbClient(host: string, port: uint16) =
             Console.WriteLine(getResponseBody request)
             false
             
-    member this.Query(database: string, query: string) = 
-        let result = createRequest Post (url "read")
+    member this.Query(database: string, query: string, [<ParamArray>] parameters: obj[]) = 
+        let result = createRequest Get (url "query")
                     |> withQueryStringItem { name = "db"; value = database }
-                    |> withBody ("q=" + query)
+                    |> withQueryStringItem { name = "q"; value = String.Format(query, parameters) }
                     |> getResponseBody
 
         let response = JsonConvert.DeserializeObject<QueryResult>(result)
-        if String.IsNullOrEmpty(response.Error) then 
+        if not <| String.IsNullOrEmpty(response.Error) then 
             Error response.Error
         else 
-            Result response.Results
+            Result (response.Results |> Array.map (fun s -> s.Series))
+
+    member this.Create(database: string) =
+        let result = createRequest Get (url "query")
+                    |> withQueryStringItem { name = "q"; value = "CREATE DATABASE " + database }
+                    |> getResponseBody
+
+        let response = JsonConvert.DeserializeObject<QueryResult>(result)
+        String.IsNullOrEmpty(response.Error)

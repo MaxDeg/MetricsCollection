@@ -1,0 +1,6 @@
+﻿ping:
+    - target: ll-7
+    - target: mdg-7
+
+perfcounters:
+    - category: Processor

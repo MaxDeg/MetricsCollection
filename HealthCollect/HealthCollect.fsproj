@@ -9,10 +9,11 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>HealthCollect</RootNamespace>
     <AssemblyName>HealthCollect</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
     <Name>HealthCollect</Name>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,7 +24,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\HealthCollect.XML</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -55,13 +57,29 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="types.fs" />
     <Compile Include="influxdb.fs" />
+    <Compile Include="eventlogs.fs" />
     <Compile Include="perfcounters.fs" />
+    <Compile Include="ping-collect.fs" />
+    <Compile Include="perfcounters-collect.fs" />
     <Compile Include="Program.fs" />
+    <None Include="staticconfig.yaml" />
+    <None Include="config.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="App.config" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FSharp.Collections.ParallelSeq">
+      <HintPath>..\packages\FSharp.Collections.ParallelSeq.1.0.2\lib\net40\FSharp.Collections.ParallelSeq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FSharp.Configuration">
+      <HintPath>..\packages\FSharp.Configuration.0.5.10\lib\net40\FSharp.Configuration.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="HttpClient">
       <HintPath>..\packages\Http.fs.1.5.1\lib\net40\HttpClient.dll</HintPath>
       <Private>True</Private>
@@ -74,9 +92,21 @@
       <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="SharpYaml">
+      <HintPath>..\packages\FSharp.Configuration.0.5.10\lib\net40\SharpYaml.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="Topshelf">
+      <HintPath>..\packages\Topshelf.3.3.1\lib\net40-full\Topshelf.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Topshelf.FSharp">
+      <HintPath>..\packages\Topshelf.FSharp.2.1.0\lib\net40\Topshelf.FSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
