@@ -44,15 +44,12 @@ type Config = JsonProvider<"""[{
 	"ping": [ "ll-7" ],
 	"perfCounters": [
 		{
-			"category": "Processor",
-			"counters": [ "% Idle Time" ],
-			"instances": [ "a" ]
+			"category": "Processor"
 		}
 	],
 	"eventLogs": [
 		{
-			"name": "Application",
-			"types": [ "Error" ]
+			"name": "Application"
 		}
 	]
 }]""", SampleIsList = true>

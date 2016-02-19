@@ -4,7 +4,6 @@ open System.Net.NetworkInformation
 open FSharp.Collections.ParallelSeq
 open InfluxDb
 
-
 type Collector (config: Config.Root) = 
     let uris = config.Ping
 

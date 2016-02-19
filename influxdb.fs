@@ -106,15 +106,14 @@ let fromString (precision : string) =
     | _ -> NanoSeconds
 
 type InfluxDbClient(host : string, port : uint16 option) = 
-    let url path = String.Format("http://{0}:{1}/", host, port) + path
+    let url path = String.Format("http://{0}:{1}/", host, defaultArg port 8086us) + path
     
     let precisionToString = 
         function 
         | Some p -> toString p
         | None -> toString NanoSeconds
     
-    new() = InfluxDbClient("localhost")
-    new(host : string) = InfluxDbClient(host, Some 8086us)
+    new() = InfluxDbClient("localhost", None)
     member this.Write(database : string, point : Point, precision : Precision option) = 
         this.Write(database, [ point ], precision)
     

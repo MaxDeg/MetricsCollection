@@ -16,8 +16,10 @@
 	],
 	"eventLogs": [
 		{
-			"name": "Application",
-			"types": [ "Error" ]
+			"name": "Application"
+		},
+		{
+			"name": "System"
 		}
 	]
 }
