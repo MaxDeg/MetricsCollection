@@ -1,24 +1,5 @@
-﻿open System
-open Topshelf
-open Time
-open System.Timers
-open InfluxDb
-open Collectors
-
-[<EntryPoint>]
-let main argv = 
-    let influxdb = new InfluxDbClient()
-    influxdb.Create("monitoring") |> ignore
-
-    let machine = Environment.MachineName
-    let send (points: seq<Point>) = 
-        let pointsWithHost = points |> Seq.map (fun p -> p.With(Map [ "host", machine ]))
-        influxdb.Write("monitoring", pointsWithHost, Some Precision.Seconds) |> ignore
-
-    let runTests _ =
-        [ Ping.collect(); PerformanceCounters.collect() ]
-        |> Seq.collect (fun i -> i)
-        |> send
+﻿//    let config = Config()
+//    config.Load("config.yaml")
 //        let pingPoints = ping [ "ll-7"; "adsi-7"; "mdg-7"; "jgi-7" ]
 //                            |> Array.map (fun (u, h) -> toPoint u h.RoundtripTime)
 //
@@ -28,14 +9,6 @@ let main argv =
 //
 //        Array.concat [ pingPoints; memPerfPoints; cpuPerfPoints; diskPerfPoints ]
 //        |> send
-
-
-    let start ctx = 
-        let timer = new Timer(10.0 * 1000.0)
-        timer.AutoReset <- true
-        timer.Elapsed.Add(runTests)
-
-        timer.Start()
 //        let sw = Stopwatch.StartNew()
 //
 //        ping [ "ll-7"; "adsi-7"; "mdg-7"; "jgi-7" ]
@@ -59,13 +32,54 @@ let main argv =
 //                |> Array.head 
 //                |> Array.item idx 
 //                |> Console.WriteLine
+module Program
 
+open FSharp.Data.JsonExtensions
+open InfluxDb
+open MetricsCollector
+open System
+open System.Timers
+open Topshelf
+
+[<EntryPoint>]
+let main _ = 
+    let config = Config.Load("config.json")
+    
+    let machine = 
+        if String.IsNullOrEmpty(config.Agent.Host) then Environment.MachineName
+        else config.Agent.Host
+    
+    let influxdb = 
+        new InfluxDbClient(config.Agent.Database.Host, config.Agent.Database.Port |> Option.map (fun p -> uint16 p))
+    influxdb.Create(config.Agent.Database.Name) |> ignore
+
+    let send (points : seq<Point>) = 
+        let pointsWithHost = points |> Seq.map (fun p -> p.With(Map [ "host", machine ]))
+        if not <| Seq.isEmpty points then 
+            influxdb.Write
+                (config.Agent.Database.Name, pointsWithHost, config.Agent.Database.Precision |> Option.map fromString) 
+            |> ignore
+    
+    let collectors : ICollector list = 
+        [ new Ping.Collector(config)
+          new PerformanceCounters.Collector(config)
+          new EventLogs.Collector(config) ]
+    
+    let runTests _ = 
+        collectors
+        |> Seq.collect (fun i -> i.Collect())
+        |> send
+    
+    let start _ = 
+        let timer = new Timer(10.0 * 1000.0)
+        timer.AutoReset <- true
+        timer.Elapsed.Add(runTests)
+        timer.Start()
         true
-
-    let stop ctx = true
-
+    
+    let stop _ = true
     Service.Default
-        |> with_start start
-        |> with_recovery (ServiceRecovery.Default |> restart (min 1))
-        |> with_stop stop
-        |> run
+    |> with_start start
+    |> with_recovery (ServiceRecovery.Default |> restart (TimeSpan.FromMinutes(1.0)))
+    |> with_stop stop
+    |> run

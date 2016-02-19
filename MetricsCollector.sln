@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "HealthCollect", "HealthCollect\HealthCollect.fsproj", "{CC408EE7-50B7-4547-A2CE-ED97FA9B87FB}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MetricsCollector", "MetricsCollector.fsproj", "{CC408EE7-50B7-4547-A2CE-ED97FA9B87FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

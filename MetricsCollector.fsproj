@@ -8,11 +8,11 @@
     <ProjectGuid>cc408ee7-50b7-4547-a2ce-ed97fa9b87fb</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>HealthCollect</RootNamespace>
-    <AssemblyName>HealthCollect</AssemblyName>
+    <AssemblyName>MetricsCollector</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
-    <Name>HealthCollect</Name>
+    <Name>MetricsCollector</Name>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -57,27 +57,26 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="types.fs" />
     <Compile Include="influxdb.fs" />
-    <Compile Include="eventlogs.fs" />
+    <Compile Include="types.fs" />
+    <Compile Include="eventlogs-collector.fs" />
     <Compile Include="perfcounters.fs" />
-    <Compile Include="ping-collect.fs" />
-    <Compile Include="perfcounters-collect.fs" />
+    <Compile Include="ping-collector.fs" />
+    <Compile Include="perfcounters-collector.fs" />
     <Compile Include="Program.fs" />
-    <None Include="staticconfig.yaml" />
-    <None Include="config.yaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <None Include="config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Collections.ParallelSeq">
       <HintPath>..\packages\FSharp.Collections.ParallelSeq.1.0.2\lib\net40\FSharp.Collections.ParallelSeq.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="FSharp.Configuration">
-      <HintPath>..\packages\FSharp.Configuration.0.5.10\lib\net40\FSharp.Configuration.dll</HintPath>
+    <Reference Include="FSharp.Data">
+      <HintPath>packages\FSharp.Data.2.2.5\lib\net40\FSharp.Data.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HttpClient">
@@ -92,13 +91,10 @@
       <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SharpYaml">
-      <HintPath>..\packages\FSharp.Configuration.0.5.10\lib\net40\SharpYaml.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="Topshelf">
       <HintPath>..\packages\Topshelf.3.3.1\lib\net40-full\Topshelf.dll</HintPath>
       <Private>True</Private>

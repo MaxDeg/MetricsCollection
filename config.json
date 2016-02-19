@@ -1,0 +1,23 @@
+﻿{
+	"agent": {
+		"host": "",
+		"interval": "10",
+		"database": {
+			"host": "mdg-7",
+			"name": "monitoring2",
+			"precision": "s"
+		}
+	},
+	"ping": [ "ll-7", "mdg-7" ],
+	"perfCounters": [
+		{
+			"category": "Processor"
+		}
+	],
+	"eventLogs": [
+		{
+			"name": "Application",
+			"types": [ "Error" ]
+		}
+	]
+}
