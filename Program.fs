@@ -34,7 +34,6 @@
 //                |> Console.WriteLine
 module Program
 
-open FSharp.Data.JsonExtensions
 open InfluxDb
 open MetricsCollector
 open System

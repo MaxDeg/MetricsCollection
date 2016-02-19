@@ -3,6 +3,7 @@
 open System
 open System.Diagnostics
 open InfluxDb
+open FSharp.Collections.ParallelSeq
 
 type Collector (config: Config.Root) = 
     let countersFor (category : string) (instances : seq<string>) (counters : seq<string>) = 
@@ -19,9 +20,9 @@ type Collector (config: Config.Root) =
             if Seq.isEmpty counters then instances |> Array.collect (fun i -> perfCategory.GetCounters(i))
             else 
                 counters
-                |> Seq.collect (fun c -> instances |> Array.map (fun i -> c, i))
-                |> Seq.map (fun (c, i) -> new PerformanceCounter(category, c, i))
-                |> Seq.toArray
+                |> PSeq.collect (fun c -> instances |> Array.map (fun i -> c, i))
+                |> PSeq.map (fun (c, i) -> new PerformanceCounter(category, c, i))
+                |> PSeq.toArray
     
         // First value is always 0 :)
         counters |> Array.iter (fun c -> c.NextValue() |> ignore)
@@ -29,13 +30,13 @@ type Collector (config: Config.Root) =
 
     let counters = 
         config.PerfCounters
-        |> Seq.collect (fun cfg -> countersFor cfg.Category cfg.Instances cfg.Counters)
-        |> Seq.toArray
+        |> PSeq.collect (fun cfg -> countersFor cfg.Category cfg.Instances cfg.Counters)
+        |> PSeq.toArray
     
     interface ICollector with 
         member this.Collect () = 
            counters
-            |> Seq.map (fun c -> 
+            |> PSeq.map (fun c -> 
                    let instanceTag = 
                        if String.IsNullOrEmpty(c.InstanceName) then List.empty
                        else [ ("instance", c.InstanceName) ]

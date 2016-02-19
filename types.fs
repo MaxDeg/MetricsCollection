@@ -2,6 +2,7 @@
 
 open FSharp.Data
 open InfluxDb
+open FSharp.Collections.ParallelSeq
 
 type Config = JsonProvider<"""[{
     "agent": {
@@ -57,4 +58,4 @@ type Config = JsonProvider<"""[{
 }]""", SampleIsList = true>
 
 type ICollector =
-    abstract member Collect: unit -> seq<Point>
+    abstract member Collect: unit -> pseq<Point>

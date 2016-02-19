@@ -19,4 +19,5 @@ type Collector (config: Config.Root) =
     interface ICollector with 
         member this.Collect () = 
             uris
-            |> Seq.map (fun target -> new Point("ping", Map [ "target", target ], ping target |> fields))
+            |> PSeq.map (fun target -> new Point("ping", Map [ "target", target ], ping target |> fields))
+

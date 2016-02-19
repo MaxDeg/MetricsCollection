@@ -3,6 +3,7 @@
 open System
 open System.Diagnostics
 open InfluxDb
+open FSharp.Collections.ParallelSeq
 
 type Collector (config: Config.Root) = 
     let mutable lastCheck = DateTime.Now
@@ -13,9 +14,9 @@ type Collector (config: Config.Root) =
         lastCheck <- DateTime.Now
 
         seq { for i in 1..entries.Count -> entries.[entries.Count - i] }
-        |> Seq.takeWhile (fun e -> e.TimeWritten > start)
-        |> Seq.filter (fun e -> Array.contains (string e.EntryType) types)
-        |> Seq.map (fun e ->            
+        |> PSeq.takeWhile (fun e -> e.TimeWritten > start)
+        |> PSeq.filter (fun e -> Array.contains (string e.EntryType) types)
+        |> PSeq.map (fun e ->            
                        let tags = Map [ "category", e.Category
                                         "type", string (e.EntryType)
                                         "source", e.Source
@@ -28,5 +29,5 @@ type Collector (config: Config.Root) =
     interface ICollector with 
         member this.Collect () =
             logs 
-            |> Seq.collect (fun (l, types) -> l.Entries |> entriesToPoints types)
+            |> PSeq.collect (fun (l, types) -> l.Entries |> entriesToPoints types)
 
