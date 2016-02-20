@@ -19,4 +19,4 @@ type Collector (config: Config.Root) =
         member this.Collect () = 
             uris
             |> PSeq.map (fun target -> new Point("ping", Map [ "target", target ], ping target |> fields))
-
+            |> PSeq.toArray

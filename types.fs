@@ -55,4 +55,4 @@ type Config = JsonProvider<"""[{
 }]""", SampleIsList = true>
 
 type ICollector =
-    abstract member Collect: unit -> pseq<Point>
+    abstract member Collect: unit -> Point[]

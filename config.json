@@ -8,7 +8,7 @@
 			"precision": "s"
 		}
 	},
-	"ping": [ "ll-7", "mdg-7" ],
+	"ping": [ "diskstation" ],
 	"perfCounters": [
 		{
 			"category": "Processor"
@@ -17,9 +17,6 @@
 	"eventLogs": [
 		{
 			"name": "Application"
-		},
-		{
-			"name": "System"
 		}
 	]
 }

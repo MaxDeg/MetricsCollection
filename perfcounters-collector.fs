@@ -30,7 +30,7 @@ type Collector (config: Config.Root) =
 
     let counters = 
         config.PerfCounters
-        |> PSeq.collect (fun cfg -> countersFor cfg.Category cfg.Instances cfg.Counters)
+        |> PSeq.collect (fun cfg -> countersFor cfg.Category cfg.Instances cfg.Counters) // Add current proccess info
         |> PSeq.toArray
     
     interface ICollector with 
@@ -48,3 +48,4 @@ type Collector (config: Config.Root) =
            
                    let value = Map [ "value", double (c.NextValue()) |> Float ]
                    new Point("perf_counters", tags |> Map.ofList, value))
+            |> PSeq.toArray
